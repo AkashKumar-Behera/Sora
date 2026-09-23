@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Rounded square background -->
+    <path
+        android:fillColor="#8A61FF"
+        android:pathData="M10,6h88a4,4 0 0 1 4,4v88a4,4 0 0 1 -4,4h-88a4,4 0 0 1 -4,-4v-88a4,4 0 0 1 4,-4z" />
+
+    <!-- Long subtle diagonal shadow -->
+    <path
+        android:fillColor="#5B3AE6"
+        android:fillAlpha="0.18"
+        android:pathData="M12,92 L92,20 L100,28 L20,100z" />
+
+    <!-- Headphone arch -->
+    <path
+        android:fillColor="#2E1B74"
+        android:pathData="M22,54 C22,36 36,22 54,22 C72,22 86,36 86,54 L80,54 C80,39 68,30 54,30 C40,30 28,39 28,54 L22,54z" />
+
+    <!-- Left earcup -->
+    <path
+        android:fillColor="#2E1B74"
+        android:pathData="M18,58 C18,70 26,74 34,74 L38,74 C38,62 38,62 38,50 L34,50 C26,50 18,54 18,58z" />
+
+    <!-- Left earcup inner highlight -->
+    <path
+        android:fillColor="#3D2A8F"
+        android:fillAlpha="0.65"
+        android:pathData="M26,56 L32,56 C33.5,56 34.5,57 34.5,58.5 L34.5,70.5 C34.5,71.9 33.5,73 32,73 L26,73z" />
+
+    <!-- Right earcup -->
+    <path
+        android:fillColor="#2E1B74"
+        android:pathData="M90,58 C90,70 82,74 74,74 L70,74 C70,62 70,62 70,50 L74,50 C82,50 90,54 90,58z" />
+
+    <!-- Right earcup inner highlight -->
+    <path
+        android:fillColor="#3D2A8F"
+        android:fillAlpha="0.65"
+        android:pathData="M82,56 L76,56 C74.5,56 73.5,57 73.5,58.5 L73.5,70.5 C73.5,71.9 74.5,73 76,73 L82,73z" />
+
+    <!-- Small base pads (under earcups) -->
+    <path
+        android:fillColor="#2E1B74"
+        android:pathData="M24,74 C26,76 30,78 36,78 L36,82 C30,82 26,80 24,78z"
+        android:fillAlpha="0.95" />
+
+    <path
+        android:fillColor="#2E1B74"
+        android:pathData="M84,74 C82,76 78,78 72,78 L72,82 C78,82 82,80 84,78z"
+        android:fillAlpha="0.95" />
+
+    <!-- Cloud shadow below -->
+    <path
+        android:fillColor="#D9D9EE"
+        android:pathData="M30,62 C26,62 22,58 22,54 C22,50 25,47 29,47 C30,44 33,42 37,42 C41,42 44,45 45,48 C47,47 50,46 53,46 C61,46 67,52 67,60 C67,62 65,63 63,63 L30,63z" />
+
+    <!-- Cloud main -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,60 C23,60 20,56 20,52 C20,48 23,45 27,45 C28,42 31,40 35,40 C39,40 42,43 43,46 C45,45 48,44 51,44 C59,44 65,50 65,58 C65,60 63,60 61,60 L28,60z" />
+
+    <!-- Cloud top highlight -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.85"
+        android:pathData="M33,50 C31,50 29.5,49 29,47.5 C30,46 32,45 34,45 C36.5,45 38.5,46.5 38.5,48 C38.5,49.5 36.5,50 33,50z" />
+
+    <!-- Tiny shadow under cloud -->
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.12"
+        android:pathData="M28,61 C34,64 54,64 61,61 C58,63 34,64 28,61z" />
+</vector>

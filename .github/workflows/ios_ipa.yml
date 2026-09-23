@@ -1,0 +1,126 @@
+name: Build Unsigned iOS IPA
+
+on:
+  workflow_dispatch: # Manual trigger so it doesn't consume minutes on every push
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+
+      - name: Disable Swift Package Manager (use CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: Update Lang Data
+        run: dart localization/generator.dart
+
+      - name: Set update check flag
+        run: |
+          mkdir -p lib/utils
+          echo "const updateCheckFlag = true;" > lib/utils/update_check_flag_file.dart
+
+      - name: Generate Dummy Firebase Config if missing
+        run: |
+          mkdir -p lib/services
+          python3 -c "
+          import os
+          if not os.path.exists('lib/services/firebase_config.dart'):
+              with open('lib/services/firebase_config.dart', 'w') as f:
+                  f.write('''import \"package:firebase_core/firebase_core.dart\";\n\nclass FirebaseConfig {\n  static FirebaseOptions get currentPlatform => const FirebaseOptions(\n    apiKey: \"dummy_api_key\",\n    appId: \"1:1234567890:ios:abcdef123456\",\n    messagingSenderId: \"1234567890\",\n    projectId: \"dummy-project\",\n  );\n}\n''')
+              print('Created dummy firebase_config.dart')
+          "
+
+
+      - name: Patch terminate_restart for modern Flutter
+        run: |
+          python3 -c '
+          import glob
+          files = glob.glob("/Users/runner/.pub-cache/**/TerminateRestartPlugin.swift", recursive=True)
+          for f in files:
+              with open(f, "r") as file:
+                  content = file.read()
+              if "guard let flutterEngine = flutterViewController.engine" in content:
+                  content = content.replace("guard let flutterEngine = flutterViewController.engine else {\n                print(\" [TerminateRestart] Error: No Flutter engine found\")\n                return\n            }", "let flutterEngine = flutterViewController.engine")
+                  content = content.replace("guard let flutterEngine = flutterViewController.engine else {", "let flutterEngine = flutterViewController.engine; if false {")
+                  with open(f, "w") as file:
+                      file.write(content)
+                  print("Patched:", f)
+          '
+
+      - name: Download audiotags native binaries
+        run: |
+          for dir in $(find "$HOME/.pub-cache" -path "*/audiotags*/ios" -type d); do
+            echo "Pre-fetching native binaries for $dir"
+            mkdir -p "$dir/Frameworks"
+            cd "$dir/Frameworks"
+            curl -fL "https://github.com/erikas-taroza/audiotags/releases/download/v1.4.2/ios.zip" -o ios.zip || \
+            curl -fL "https://github.com/erikas-taroza/audiotags/releases/download/v1.4.1/ios.zip" -o ios.zip
+            unzip -qo ios.zip -d audiotags.xcframework || true
+            cd -
+          done
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Build iOS App (Unsigned)
+        run: |
+          flutter build ios --release --no-codesign --split-debug-info=build/debug-info
+
+      - name: Package into IPA (Fast Zip)
+        run: |
+          APP_PATH=""
+          if [ -d "build/ios/iphoneos/Runner.app" ]; then
+            APP_PATH="build/ios/iphoneos/Runner.app"
+          else
+            APP_PATH=$(find build -name "Runner.app" -type d | grep "iphoneos" | head -n 1)
+          fi
+
+          if [ -n "$APP_PATH" ] && [ -d "$APP_PATH" ]; then
+            echo "Packaging Runner.app from: $APP_PATH"
+            mkdir -p Payload
+            cp -r "$APP_PATH" Payload/
+            zip -r -1 CloudBeatz-unsigned.ipa Payload
+            echo "IPA created successfully!"
+          else
+            echo "Error: Device Runner.app not found!"
+            exit 1
+          fi
+
+
+
+
+
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CloudBeatz-Unsigned-IPA
+          path: CloudBeatz-unsigned.ipa
+          retention-days: 14
