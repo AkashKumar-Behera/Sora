@@ -370,9 +370,11 @@ jobs:
             - **iOS:** `CloudBeatz.ipa` (Install via AltStore, SideStore, Sideloadly, or TrollStore)
 
             #### Changes in this release:
+            - Google Assistant & Android Voice Action support (`play <song> on CloudBeatz`)
+            - Apple Siri Shortcuts integration (`cloudbeatz://play` deep link scheme)
             - Instant playback acceleration with persistent streaming connection
-            - Audio bleed elimination on track transitions
-            - UI improvements and multiplatform stabilization
+            - Removed JioSaavn dead endpoints and cleaned fallback streaming
+            - Full CloudBeatz branding alignment across Android, iOS, Windows, and Linux
           files: |
             release_assets/CloudBeatz-Setup.exe
             release_assets/app-arm64-v8a-release.apk

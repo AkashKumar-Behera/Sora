@@ -69,6 +69,26 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="cloudbeatz" android:host="jam"/>
             </intent-filter>
+
+            <!-- Google Assistant Deep Link Intent Filter -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="cloudbeatz" android:host="play"/>
+                <data android:scheme="cloudbeatz" android:host="search"/>
+            </intent-filter>
+
+            <!-- Android Native Voice Search / Media Play From Search (Google Assistant) -->
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
+            <!-- Google Assistant App Actions Shortcuts meta-data -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts"/>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

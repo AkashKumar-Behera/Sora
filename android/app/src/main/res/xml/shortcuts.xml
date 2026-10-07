@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Google Assistant Play Music App Action -->
+    <capability android:name="actions.intent.PLAY_MUSIC">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.akash.cloudbeatz"
+            android:targetClass="com.akash.cloudbeatz.MainActivity">
+            <parameter
+                android:name="music.song.name"
+                android:key="songName"/>
+            <parameter
+                android:name="music.artist.name"
+                android:key="artistName"/>
+            <parameter
+                android:name="music.album.name"
+                android:key="albumName"/>
+            <data 
+                android:scheme="cloudbeatz" 
+                android:host="play" />
+        </intent>
+    </capability>
+
+    <!-- General Voice Search Capability -->
+    <capability android:name="actions.intent.OPEN_APP_FEATURE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.akash.cloudbeatz"
+            android:targetClass="com.akash.cloudbeatz.MainActivity">
+            <parameter
+                android:name="feature"
+                android:key="featureName"/>
+            <data 
+                android:scheme="cloudbeatz" 
+                android:host="feature" />
+        </intent>
+    </capability>
+</shortcuts>

@@ -85,10 +85,69 @@ mixin ProcessLink {
         final songId = uri.pathSegments[0];
         await playSong(songId);
       }
+    } else if (uri.scheme == "cloudbeatz") {
+      printINFO("CloudBeatz Voice/Assistant intent: $uri");
+      if (uri.host == "play" || uri.host == "search") {
+        final query = uri.queryParameters['songName'] ??
+            uri.queryParameters['query'] ??
+            uri.queryParameters['q'] ??
+            uri.queryParameters['featureName'];
+        if (query != null && query.trim().isNotEmpty) {
+          await searchAndPlayVoiceQuery(query.trim());
+        }
+      }
     } else {
       ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
           Get.context!, "notaValidLink".tr,
           size: SanckBarSize.MEDIUM));
+    }
+  }
+
+  /// Automatically searches YouTube Music for voice query and auto-plays top result
+  Future<void> searchAndPlayVoiceQuery(String query) async {
+    showDialog(
+      context: Get.context!,
+      builder: (context) => const Center(
+        child: LoadingIndicator(
+          strokeWidth: 5,
+        ),
+      ),
+      barrierDismissible: false,
+    );
+
+    try {
+      final musicService = Get.find<MusicServices>();
+      final searchResults = await musicService.search(query, filter: 'songs');
+      final songs = searchResults['songs']?['contents'] as List? ?? [];
+
+      if (songs.isNotEmpty) {
+        final topSong = songs.first;
+        final videoId = topSong['videoId'];
+        if (videoId != null) {
+          final result = await musicService.getSongWithId(videoId);
+          Navigator.of(Get.context!).pop();
+          if (result[0]) {
+            Get.find<PlayerController>().playPlayListSong(
+              List.from(result[1]),
+              0,
+              playfrom: PlaylingFrom(type: PlaylingFromType.SELECTION),
+            );
+            return;
+          }
+        }
+      }
+
+      if (Navigator.of(Get.context!).canPop()) {
+        Navigator.of(Get.context!).pop();
+      }
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        snackbar(Get.context!, "No song found for '$query'", size: SanckBarSize.MEDIUM),
+      );
+    } catch (e) {
+      if (Navigator.of(Get.context!).canPop()) {
+        Navigator.of(Get.context!).pop();
+      }
+      printERROR("Voice search error: $e");
     }
   }
 
