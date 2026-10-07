@@ -130,45 +130,7 @@ jobs:
       - name: Pre-download audiotags and smtc_windows binaries
         shell: pwsh
         run: |
-          $pubCache = "$env:LOCALAPPDATA\Pub\Cache\hosted\pub.dev"
-          
-          # 1. Audiotags
-          $audioTagsDir = Get-ChildItem -Path $pubCache -Directory -Filter "audiotags*" | Select-Object -First 1
-          if ($audioTagsDir) {
-            $audioTagsWin = Join-Path $audioTagsDir.FullName "windows"
-            Write-Host "Downloading audiotags binary to $($audioTagsWin)..."
-            Invoke-WebRequest -Uri "https://github.com/erikas-taroza/audiotags/releases/download/v1.4.2/windows.tar.gz" -OutFile "$audioTagsWin\windows.tar.gz"
-            tar -xzf "$audioTagsWin\windows.tar.gz" -C "$audioTagsWin"
-          }
-          
-          # 2. smtc_windows
-          $smtcDir = Get-ChildItem -Path $pubCache -Directory -Filter "smtc_windows*" | Select-Object -First 1
-          if ($smtcDir) {
-            $smtcWin = Join-Path $smtcDir.FullName "windows"
-            $smtcTargetDir = Join-Path $smtcWin "smtc_windows-v0.1.3"
-            New-Item -ItemType Directory -Force -Path $smtcTargetDir | Out-Null
-            Write-Host "Downloading smtc_windows binary to $($smtcWin)..."
-            Invoke-WebRequest -Uri "https://github.com/KRTirtho/frb_plugins/releases/download/smtc_windows-v0.1.3/windows.tar.gz" -OutFile "$smtcWin\smtc_windows-v0.1.3.tar.gz"
-            tar -xzf "$smtcWin\smtc_windows-v0.1.3.tar.gz" -C "$smtcTargetDir"
-            
-            # Replace smtc CMakeLists.txt with a clean, pre-configured CMake file
-            $cmakeFile = Join-Path $smtcWin "CMakeLists.txt"
-            if (Test-Path $cmakeFile) {
-              $cleanCmake = @"
-cmake_minimum_required(VERSION 3.14)
-project(smtc_windows LANGUAGES CXX)
-
-set(LibraryVersion "smtc_windows-v0.1.3")
-set(LibRoot "`${CMAKE_CURRENT_SOURCE_DIR}/`${LibraryVersion}")
-
-set(smtc_windows_bundled_libraries
-  "`${LibRoot}/`${FLUTTER_TARGET_PLATFORM}/smtc_windows.dll"
-  PARENT_SCOPE
-)
-"@
-              Set-Content -Path $cmakeFile -Value $cleanCmake -Encoding utf8
-            }
-          }
+          pwsh windows/packaging/ci_prepare_windows.ps1
 
       - name: Generate Localization
         run: dart localization/generator.dart
@@ -326,6 +288,7 @@ set(smtc_windows_bundled_libraries
   create-release:
     name: Publish GitHub Release
     needs: [build-android, build-windows, build-ios]
+    if: always() && (needs.build-android.result == 'success' || needs.build-ios.result == 'success' || needs.build-windows.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Determine Release Tag
@@ -338,18 +301,21 @@ set(smtc_windows_bundled_libraries
           fi
 
       - name: Download Android Artifacts
+        if: needs.build-android.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: android-apks
           path: release_assets
 
       - name: Download Windows Artifact
+        if: needs.build-windows.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: windows-installer
           path: release_assets
 
       - name: Download iOS Artifact
+        if: needs.build-ios.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: ios-ipa
@@ -383,13 +349,7 @@ set(smtc_windows_bundled_libraries
             - Instant playback acceleration with persistent streaming connection
             - Removed JioSaavn dead endpoints and cleaned fallback streaming
             - Full CloudBeatz branding alignment across Android, iOS, Windows, and Linux
-          files: |
-            release_assets/CloudBeatz-Setup.exe
-            release_assets/app-arm64-v8a-release.apk
-            release_assets/app-armeabi-v7a-release.apk
-            release_assets/app-x86_64-release.apk
-            release_assets/app-universal-release.apk
-            release_assets/CloudBeatz.ipa
+          files: release_assets/*
           draft: false
           prerelease: false
         env:
