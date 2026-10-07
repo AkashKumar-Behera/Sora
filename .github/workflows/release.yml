@@ -151,19 +151,22 @@ jobs:
             Invoke-WebRequest -Uri "https://github.com/KRTirtho/frb_plugins/releases/download/smtc_windows-v0.1.3/windows.tar.gz" -OutFile "$smtcWin\smtc_windows-v0.1.3.tar.gz"
             tar -xzf "$smtcWin\smtc_windows-v0.1.3.tar.gz" -C "$smtcTargetDir"
             
-            # Patch smtc CMakeLists.txt to prevent symlink extraction errors
+            # Replace smtc CMakeLists.txt with a clean, pre-configured CMake file
             $cmakeFile = Join-Path $smtcWin "CMakeLists.txt"
             if (Test-Path $cmakeFile) {
-              $lines = Get-Content $cmakeFile
-              $newLines = @()
-              foreach ($line in $lines) {
-                if ($line -match 'file\(REMOVE_RECURSE' -or $line -match 'file\(MAKE_DIRECTORY' -or $line -match 'execute_process\(' -or $line -match 'COMMAND \$\{CMAKE_COMMAND\}' -or $line -match 'WORKING_DIRECTORY \$\{LibRoot\}' -or $line -match '^\s*\)\s*$') {
-                  $newLines += "# $line"
-                } else {
-                  $newLines += $line
-                }
-              }
-              Set-Content -Path $cmakeFile -Value $newLines -Encoding utf8
+              $cleanCmake = @"
+cmake_minimum_required(VERSION 3.14)
+project(smtc_windows LANGUAGES CXX)
+
+set(LibraryVersion "smtc_windows-v0.1.3")
+set(LibRoot "`${CMAKE_CURRENT_SOURCE_DIR}/`${LibraryVersion}")
+
+set(smtc_windows_bundled_libraries
+  "`${LibRoot}/`${FLUTTER_TARGET_PLATFORM}/smtc_windows.dll"
+  PARENT_SCOPE
+)
+"@
+              Set-Content -Path $cmakeFile -Value $cleanCmake -Encoding utf8
             }
           }
 
