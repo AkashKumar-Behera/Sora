@@ -154,11 +154,16 @@ jobs:
             # Patch smtc CMakeLists.txt to prevent symlink extraction errors
             $cmakeFile = Join-Path $smtcWin "CMakeLists.txt"
             if (Test-Path $cmakeFile) {
-              $content = Get-Content $cmakeFile -Raw
-              $patched = $content.Replace("file(REMOVE_RECURSE `${LibRoot})", "# file(REMOVE_RECURSE `${LibRoot})")
-              $patched = $patched.Replace("file(MAKE_DIRECTORY `${LibRoot})", "# file(MAKE_DIRECTORY `${LibRoot})")
-              $patched = $patched.Replace("execute_process(", "# execute_process(")
-              Set-Content -Path $cmakeFile -Value $patched -Encoding utf8
+              $lines = Get-Content $cmakeFile
+              $newLines = @()
+              foreach ($line in $lines) {
+                if ($line -match 'file\(REMOVE_RECURSE' -or $line -match 'file\(MAKE_DIRECTORY' -or $line -match 'execute_process\(' -or $line -match 'COMMAND \$\{CMAKE_COMMAND\}' -or $line -match 'WORKING_DIRECTORY \$\{LibRoot\}' -or $line -match '^\s*\)\s*$') {
+                  $newLines += "# $line"
+                } else {
+                  $newLines += $line
+                }
+              }
+              Set-Content -Path $cmakeFile -Value $newLines -Encoding utf8
             }
           }
 
